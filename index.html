@@ -562,21 +562,70 @@ function showScreen(id){
 }
 function nav(id,param){
   stack.push(curScreen);
-  if(id==='s-add'){setupAdd(param);} // param = tx id for edit, or null for new
+  if(id==='s-add'){setupAdd(param);}
   if(id==='s-kartlar') renderKartlar();
   if(id==='s-reports') renderReports();
   if(id==='s-settings') renderSettings();
   showScreen(id);
+  // Her ekran geçişinde history'e yeni entry ekle
+  window.history.pushState({screen: id}, '');
 }
 function back(){
-  if(stack.length){const p=stack.pop();showScreen(p);
+  if(stack.length){
+    const p=stack.pop();
+    showScreen(p);
     if(p==='s-home') renderHome();
     if(p==='s-reports') renderReports();
-  } else goHome();
+    if(p==='s-kartlar') renderKartlar();
+  } else {
+    goHome();
+  }
 }
 function goHome(){stack=[];renderHome();showScreen('s-home');}
-window.addEventListener('popstate',e=>{e.preventDefault();back();});
-window.history.pushState({},'');
+
+// ══════ ANDROID GERİ TUŞU ══════
+// Samsung dahil tüm Android tarayıcılarda çalışan yöntem:
+// Her ekran/modal açılışında history'e state push edilir.
+// Geri tuşu popstate tetikler → önce modal kapat, sonra ekrana dön.
+
+window.addEventListener('popstate', function(e){
+  // 1. Önce açık modal var mı?
+  const openModal = document.querySelector('.ov.open');
+  if(openModal){
+    openModal.classList.remove('open');
+    // Modal kapandı, history'de kalmak için tekrar push et
+    window.history.pushState({screen: curScreen}, '');
+    return;
+  }
+  // 2. Ekran stack'i dolu → önceki ekrana dön
+  if(stack.length > 0){
+    const p = stack.pop();
+    showScreen(p);
+    if(p==='s-home') renderHome();
+    if(p==='s-reports') renderReports();
+    if(p==='s-kartlar') renderKartlar();
+    // Döndüğümüz ekranı history'e tekrar ekle
+    window.history.pushState({screen: p}, '');
+  } else {
+    // 3. Ana ekrandayız — uygulamadan çıkmasın, history'i koru
+    window.history.pushState({screen: 's-home'}, '');
+  }
+});
+
+// Modal açılışlarında da history push et
+function openDetailWithHistory(id){
+  openDetail(id);
+  window.history.pushState({screen: curScreen, modal:'detail'}, '');
+}
+function openAddKartWithHistory(){
+  openAddKart();
+  window.history.pushState({screen: curScreen, modal:'kart'}, '');
+}
+
+// Başlangıç: 2 state push edilir
+// İlki: geri tuşu hiç history olmadan çalıştırıldığında çıkışı önler
+window.history.replaceState({screen:'s-home'}, '');
+window.history.pushState({screen:'s-home'}, '');
 
 // ══════ HOME ══════
 function renderHome(){
@@ -859,6 +908,7 @@ function openAddKart(){
   setKartType('kk');
   ['k-name','k-cut','k-due'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ov-kart').classList.add('open');
+  window.history.pushState({screen: curScreen, modal:'kart'}, '');
 }
 function saveKart(){
   const name=document.getElementById('k-name').value.trim();
@@ -1004,7 +1054,6 @@ function openDetail(id){
   const now=new Date();const cm=now.getMonth(),cy=now.getFullYear();
   const paid=isInst?(()=>{const sd=new Date(t.instStartDate||t.date);return(cy-sd.getFullYear())*12+(cm-sd.getMonth());})():0;
   const remaining=isInst?t.totalInst-paid:0;
-
   document.getElementById('m-amt').textContent=isInst?fmt(t.monthlyAmt)+'/ay':fmt(t.amount);
   document.getElementById('m-name').textContent=t.desc;
   let rows=`
@@ -1025,15 +1074,14 @@ function openDetail(id){
   }
   if(t.note) rows+=`<div class="mdl-row"><span class="mdl-key">Not</span><span class="mdl-val">${t.note}</span></div>`;
   document.getElementById('m-rows').innerHTML=rows;
-
   document.getElementById('m-edit-btn').onclick=()=>{
-    document.getElementById('ov-detail').classList.remove('open');
+    closeAllModals();
     nav('s-add',id);
   };
   document.getElementById('m-del-btn').onclick=()=>{
     if(confirm('Bu harcama silinsin mi?')){
       tx=tx.filter(x=>x.id!==id);persist();
-      document.getElementById('ov-detail').classList.remove('open');
+      closeAllModals();
       toast('🗑️ Silindi');
       renderHome();
       if(curScreen==='s-reports') renderReports();
@@ -1042,8 +1090,19 @@ function openDetail(id){
     }
   };
   document.getElementById('ov-detail').classList.add('open');
+  window.history.pushState({screen: curScreen, modal:'detail'}, '');
 }
-function closeOv(id,e){if(e.target.id===id)document.getElementById(id).classList.remove('open');}
+
+function closeAllModals(){
+  document.querySelectorAll('.ov.open').forEach(m=>m.classList.remove('open'));
+}
+function closeOv(id,e){
+  if(e.target.id===id){
+    document.getElementById(id).classList.remove('open');
+    // history.back() çağırmıyoruz — sadece modal kapanır
+    // geri tuşu popstate üzerinden zaten hallediyor
+  }
+}
 
 // ══════ SETTINGS ══════
 function renderSettings(){document.getElementById('set-cnt').textContent=tx.length+' gider kayıtlı';document.getElementById('tsw-notif').className='tsw'+(cfg.notif?' on':'');}
