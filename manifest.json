@@ -1,0 +1,60 @@
+{
+  "name": "Cüzdan - Harcama Takibi",
+  "short_name": "Cüzdan",
+  "description": "Kişisel harcama ve taksit takip uygulaması",
+  "start_url": "https://egemenozbelli.github.io/cuzdan2/index.html",
+  "scope": "https://egemenozbelli.github.io/cuzdan2/",
+  "display": "standalone",
+  "background_color": "#080810",
+  "theme_color": "#6c63ff",
+  "orientation": "portrait",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": ["finance", "utilities", "productivity"],
+  "screenshots": [
+    {
+      "src": "https://egemenozbelli.github.io/cuzdan2/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Cüzdan Ana Ekran"
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://egemenozbelli.github.io/cuzdan2/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://egemenozbelli.github.io/cuzdan2/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://egemenozbelli.github.io/cuzdan2/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://egemenozbelli.github.io/cuzdan2/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Gider Ekle",
+      "short_name": "Ekle",
+      "description": "Yeni harcama ekle",
+      "url": "https://egemenozbelli.github.io/cuzdan2/index.html",
+      "icons": [{"src": "https://egemenozbelli.github.io/cuzdan2/icon-192.png", "sizes": "192x192"}]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}
